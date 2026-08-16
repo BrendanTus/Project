@@ -36,11 +36,27 @@ concrete about what the customer actually sees on screen. End with a one-line de
     name: "Maker",
     system: `You are the Maker agent for Roast & Wander. Your personality: pragmatic, terse,
 impatient with anything that can't actually ship. Your superpower is turning a concept into a
-working artefact fast. Given the Designer's concept, the live exchange rate figures, and live
-product data from a Google Sheet, write a short technical note (80-120 words) describing
-exactly what you built (a live currency-aware pricing table, populated from a Google Sheet you
-control and converted using live exchange rates fetched at the same moment) and any technical
-trade-offs or limitations of the current version.`
+working artefact fast.
+
+FACTS ABOUT WHAT WAS ACTUALLY BUILT (do not contradict or embellish these):
+- Plain HTML, CSS and vanilla JavaScript. No framework (no React, Vue, etc.) and no build step.
+- No backend and no serverless functions. Everything runs client-side in the browser.
+- Product names, prices and descriptions are fetched at run time from a Google Sheet published
+  as CSV, via a plain fetch() call and a small hand-written CSV parser.
+- Exchange rates are fetched at run time from the free Frankfurter API. Nothing is cached, and
+  there is no geo-IP detection or per-region UI variant \u2014 the same page and pricing table is
+  shown to every visitor regardless of location.
+- Prices shown are a straightforward multiplication of the Google Sheet's EUR base price by the
+  live exchange rate. There is no separate "brand-weight" multiplier or psychological anchor
+  pricing logic in the code \u2014 that idea may appear in the Designer's concept, but only include
+  it here if you are also willing to say plainly that it is not yet implemented.
+
+Given the Designer's concept, the live exchange rate figures, and live product data from a
+Google Sheet, write a short technical note (80-120 words) describing exactly what was built,
+using only the facts above, and any real trade-offs or limitations of this simple version (for
+example: no caching, no backend, single Google Sheet as the only data source, no per-region
+personalisation yet). Do not invent technology, frameworks, or features that are not listed
+above.`
   },
   communicator: {
     name: "Communicator",
@@ -57,7 +73,9 @@ allergic to happy-talk, always weighs cost against benefit. Your superpower is o
 and judgement. Given the Researcher's brief, the Designer's concept, the Maker's build note,
 and the Communicator's copy, write a short executive summary (120-180 words): does this
 collectively solve the original problem, what is the single biggest remaining risk, and what
-is the next concrete step. Be honest if something in the chain is weak.`
+is the next concrete step. Be honest if something in the chain is weak. Base your critique only
+on what the other four agents actually said \u2014 do not invent additional technical details,
+metrics, or features that were not mentioned in their outputs.`
   }
 };
 
@@ -109,23 +127,42 @@ async function fetchLiveProducts() {
 }
 
 // --- LLM CALL via Gemini free tier (key supplied by the person running the page) ---
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function callGemini(apiKey, systemPrompt, userPrompt) {
- const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents: [{ role: "user", parts: [{ text: userPrompt }] }]
   };
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${errText}`);
+
+  const maxAttempts = 4;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (res.status === 429 && attempt < maxAttempts) {
+      // Free tier rate limit hit — back off and retry automatically instead of failing the run.
+      const waitMs = attempt * 12000; // 12s, 24s, 36s
+      console.warn(`Gemini 429, retrying in ${waitMs / 1000}s (attempt ${attempt}/${maxAttempts})`);
+      await sleep(waitMs);
+      continue;
+    }
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Gemini API error ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "(no output returned)";
   }
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "(no output returned)";
+  throw new Error("Gemini API rate limit: still exceeded after several retries. Wait a minute and try again.");
 }
 
 function renderPricingTable(rates, products) {
@@ -171,12 +208,14 @@ async function runPipeline() {
     setStatus("researcher", "Done", true);
 
     // 2. Designer — takes Researcher's output as input
+    await sleep(4000); // brief pause between calls to stay under the free-tier rate limit
     setStatus("designer", "Thinking…");
     const designerOut = await callGemini(apiKey, AGENTS.designer.system, `Researcher's brief:\n\n${researcherOut}`);
     el("output-designer").textContent = designerOut;
     setStatus("designer", "Done", true);
 
     // 3. Maker — takes Designer's output, also renders the live pricing widget
+    await sleep(4000);
     setStatus("maker", "Building…");
     renderPricingTable(rates, products);
     const makerOut = await callGemini(apiKey, AGENTS.maker.system, `Designer's concept:\n\n${designerOut}\n\nLive rates used: 1 EUR = ${rates.rates.GBP} GBP, 1 EUR = ${rates.rates.USD} USD (${rates.date}). Live product data used: ${productSummary}.`);
@@ -184,12 +223,14 @@ async function runPipeline() {
     setStatus("maker", "Done", true);
 
     // 4. Communicator — takes Maker's output
+    await sleep(4000);
     setStatus("communicator", "Writing…");
     const communicatorOut = await callGemini(apiKey, AGENTS.communicator.system, `Maker's build note:\n\n${makerOut}`);
     el("output-communicator").textContent = communicatorOut;
     setStatus("communicator", "Done", true);
 
     // 5. Manager — takes everything
+    await sleep(4000);
     setStatus("manager", "Reviewing…");
     const managerPrompt = `Researcher brief:\n${researcherOut}\n\nDesigner concept:\n${designerOut}\n\nMaker note:\n${makerOut}\n\nCommunicator copy:\n${communicatorOut}`;
     const managerOut = await callGemini(apiKey, AGENTS.manager.system, managerPrompt);
