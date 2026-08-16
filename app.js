@@ -110,7 +110,7 @@ async function fetchLiveProducts() {
 
 // --- LLM CALL via Gemini free tier (key supplied by the person running the page) ---
 async function callGemini(apiKey, systemPrompt, userPrompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+ const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents: [{ role: "user", parts: [{ text: userPrompt }] }]
