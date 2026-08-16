@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roast & Wander — Agentic Organisation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>☕ Roast &amp; Wander</h1>
+    <p class="subtitle">An agentic organisation of 5 AI agents, planning our international expansion — live.</p>
+  </header>
+
+  <section id="setup">
+    <label for="apiKey">Your free Gemini API key</label>
+    <input type="password" id="apiKey" placeholder="Paste your Gemini API key here (never saved or sent anywhere but Google)">
+    <p class="hint">
+      Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+      The key stays in your browser tab only — it is never stored, logged, or committed to this repository.
+    </p>
+    <button id="runBtn">Run the pipeline</button>
+    <p class="hint">Business challenge: price and market a coffee subscription consistently across EUR, GBP and USD customers.</p>
+  </section>
+
+  <section id="pipeline">
+    <div class="agent-card" id="card-researcher">
+      <h2>1. Researcher <span class="tag">opportunity</span></h2>
+      <div class="status" id="status-researcher">Waiting…</div>
+      <pre class="output" id="output-researcher"></pre>
+    </div>
+    <div class="agent-card" id="card-designer">
+      <h2>2. Designer <span class="tag">solution</span></h2>
+      <div class="status" id="status-designer">Waiting…</div>
+      <pre class="output" id="output-designer"></pre>
+    </div>
+    <div class="agent-card" id="card-maker">
+      <h2>3. Maker <span class="tag">prototype</span></h2>
+      <div class="status" id="status-maker">Waiting…</div>
+      <pre class="output" id="output-maker"></pre>
+      <div id="pricingWidget"></div>
+    </div>
+    <div class="agent-card" id="card-communicator">
+      <h2>4. Communicator <span class="tag">go-to-market</span></h2>
+      <div class="status" id="status-communicator">Waiting…</div>
+      <pre class="output" id="output-communicator"></pre>
+    </div>
+    <div class="agent-card" id="card-manager">
+      <h2>5. Manager <span class="tag">executive summary</span></h2>
+      <div class="status" id="status-manager">Waiting…</div>
+      <pre class="output" id="output-manager"></pre>
+    </div>
+  </section>
+
+  <footer>
+    <p>Live exchange rates supplied at run time by <a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter.dev</a> (no key required). Agent reasoning supplied at run time by the Gemini API using the key you provide above.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

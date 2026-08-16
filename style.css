@@ -1,0 +1,100 @@
+:root {
+  --brown: #4a2c20;
+  --cream: #faf3e8;
+  --accent: #c8802a;
+  --ok: #2f7d4f;
+  --pending: #a08a6f;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--brown);
+  margin: 0;
+  padding: 0 1rem 3rem;
+}
+header {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+}
+header h1 { margin-bottom: 0.2rem; }
+.subtitle { color: #7a6350; max-width: 40rem; margin: 0 auto; }
+
+#setup {
+  max-width: 40rem;
+  margin: 1.5rem auto;
+  background: white;
+  border: 1px solid #e4d6c3;
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+#setup label { font-weight: 600; display: block; margin-bottom: 0.3rem; }
+#setup input {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #ccb89a;
+  margin-bottom: 0.5rem;
+}
+.hint { font-size: 0.85rem; color: #8a7863; }
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+button:hover { background: #a86a1f; }
+button:disabled { background: #d8c6ab; cursor: not-allowed; }
+
+#pipeline {
+  max-width: 50rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.agent-card {
+  background: white;
+  border: 1px solid #e4d6c3;
+  border-left: 5px solid var(--pending);
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  transition: border-color 0.3s;
+}
+.agent-card.done { border-left-color: var(--ok); }
+.agent-card h2 { margin: 0 0 0.3rem; font-size: 1.1rem; }
+.tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  background: var(--cream);
+  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  margin-left: 0.5rem;
+  color: var(--accent);
+}
+.status { font-size: 0.85rem; color: var(--pending); margin-bottom: 0.5rem; }
+.output {
+  white-space: pre-wrap;
+  font-family: 'Georgia', serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+#pricingWidget { margin-top: 1rem; }
+#pricingWidget table { border-collapse: collapse; width: 100%; }
+#pricingWidget td, #pricingWidget th {
+  border: 1px solid #e4d6c3;
+  padding: 0.4rem 0.7rem;
+  text-align: left;
+}
+footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #8a7863;
+  max-width: 40rem;
+  margin: 2rem auto 0;
+}
